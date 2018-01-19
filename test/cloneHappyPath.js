@@ -63,4 +63,44 @@ contract('Clone', function(accounts) {
       assert.equal(isPrinting, false, "The Clone should not be printing.");
     });
   });
+
+  it("...should need maintenance", function() {
+    return Clone.deployed().then(function(instance) {
+      cloneInstance = instance;
+      return cloneInstance.getNeedsMaintenance.call();
+    }).then(function(needsMaintenance) {
+      assert.equal(needsMaintenance, true, "The Clone should need maintenance.");
+    });
+  });
+
+  it("...should not need maintenance", function() {
+    return Clone.deployed().then(function(instance) {
+      cloneInstance = instance;
+      return cloneInstance.setNeedsMaintenance(false);
+    }).then(function() {
+      return cloneInstance.getNeedsMaintenance.call();
+    }).then(function(needsMaintenance) {
+      assert.equal(needsMaintenance, false, "The Clone should not need maintenance.");
+    });
+  });
+
+  it("...should not be being repaired", function() {
+    return Clone.deployed().then(function(instance) {
+      cloneInstance = instance;
+      return cloneInstance.getIsBeingRepaired.call();
+    }).then(function(isBeingRepaired) {
+      assert.equal(isBeingRepaired, false, "The Clone should not be being repaired.");
+    });
+  });
+
+  it("...should be being repaired", function() {
+    return Clone.deployed().then(function(instance) {
+      cloneInstance = instance;
+      return cloneInstance.setIsBeingRepaired(true);
+    }).then(function() {
+      return cloneInstance.getIsBeingRepaired.call();
+    }).then(function(isBeingRepaired) {
+      assert.equal(isBeingRepaired, true, "The Clone should be being repaired.");
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import CloudContract from '../build/contracts/Cloud.json'
+import CloneContract from '../build/contracts/Clone.json'
 import getWeb3 from './utils/getWeb3'
 
 import './css/oswald.css'
@@ -12,7 +12,8 @@ class App extends Component {
     super(props)
 
     this.state = {
-      storageValue: 0,
+      userName: '',
+      title: '',
       web3: null
     }
   }
@@ -44,45 +45,66 @@ class App extends Component {
      */
 
     const contract = require('truffle-contract')
-    const cloud = contract(CloudContract)
-    cloud.setProvider(this.state.web3.currentProvider)
+    const Clone = contract(CloneContract)
+    Clone.setProvider(this.state.web3.currentProvider)
 
-    // Declaring this for later so we can chain functions on cloud.
-    var cloudInstance
+    // Declaring this for later so we can chain functions on clone.
+    var CloneInstance
 
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
-      cloud.deployed().then((instance) => {
-        cloudInstance = instance
+      Clone.deployed().then((instance) => {
+        CloneInstance = instance
+        this.setState({
+          userName: accounts[0],
+          balance: this.state.web3.fromWei(this.state.web3.eth.getBalance(accounts[0]), "ether").toNumber()
+        })
 
-        // Stores a given value, 5 by default.
-        return cloudInstance.set(11115, {from: accounts[0]})
+        return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
       }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return cloudInstance.get.call(accounts[0])
+        return CloneInstance.getTitle.call(accounts[0])
       }).then((result) => {
-        // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })
-    })
+        this.setState({
+          title: result
+        });
+        return CloneInstance.getNeedsMaintenance.call(accounts[0])
+      }).then((result) => {
+        this.setState({
+          needsMaintenance: result
+        });
+        return CloneInstance.getIsBeingRepaired.call(accounts[0])
+      }).then((result) => {
+        this.setState({
+          isBeingRepaired: result
+        });
+      });
+    });
   }
 
   render() {
+    let needsMaintenance;
+    let isBeingRepaired;
+    if(this.state.needsMaintenance) {
+      needsMaintenance = <p>needs maintenance</p>;
+    }
+    if(this.state.isBeingRepaired) {
+      isBeingRepaired = <p>Is being repaired</p>;
+    }
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
+          <a href="#" className="pure-menu-heading pure-menu-link">my.clone.earth</a>
         </nav>
 
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-1">
-              <h1>Good to Go!</h1>
-              <p>Your Truffle Box is installed and ready.</p>
-              <h2>Smart Contract Example</h2>
-              <p>If your contracts compiled and migrated successfully, below will show a stored value of 5 (by default).</p>
-              <p>Try changing the value stored on <strong>line 59</strong> of App.js.</p>
-              <p>The stored value is: {this.state.storageValue}</p>
+              <h1>Account: {this.state.userName}</h1>
+              <p>Balance: {this.state.balance} ETH</p>
+              <h2>Clone</h2>
+              <p>{this.state.title}</p>
+              {needsMaintenance}
+              {isBeingRepaired}
             </div>
           </div>
         </main>

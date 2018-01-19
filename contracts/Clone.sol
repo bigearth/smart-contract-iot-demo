@@ -121,7 +121,7 @@ contract Clone is Ownable, Destructible {
   function Clone(uint _generation) public {
     generation = _generation;
     isPrinting = false;
-    needsMaintenance = false;
+    needsMaintenance = true;
     isBeingRepaired = false;
 
     // set up default hardware values
@@ -162,5 +162,21 @@ contract Clone is Ownable, Destructible {
 
   function stopPrinting() public {
     isPrinting = false;
+  }
+
+  function setNeedsMaintenance(bool _needsMaintenance) public {
+    needsMaintenance = _needsMaintenance;
+  }
+
+  function getNeedsMaintenance() public view returns (bool) {
+    return needsMaintenance;
+  }
+
+  function setIsBeingRepaired(bool _isBeingRepaired) public {
+    isBeingRepaired = _isBeingRepaired;
+  }
+
+  function getIsBeingRepaired() public view returns (bool) {
+    return isBeingRepaired;
   }
 }
