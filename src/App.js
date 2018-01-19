@@ -5,8 +5,6 @@ const contract = require('truffle-contract')
 const Clone = contract(CloneContract)
 let CloneInstance;
 
-import './css/oswald.css'
-import './css/open-sans.css'
 import './css/pure-min.css'
 import './App.css'
 
@@ -21,7 +19,8 @@ class App extends Component {
       Clone: '',
       inMaintenanceMode: false,
       maintenanceBtnDisabled: false,
-      isLoading: false
+      isLoading: false,
+      balance: 0
     }
   }
 
@@ -64,12 +63,9 @@ class App extends Component {
       Clone.deployed().then((instance) => {
         CloneInstance = instance
         this.setState({
-          userName: accounts[0],
-          balance: this.state.web3.fromWei(this.state.web3.eth.getBalance(accounts[0]), "ether").toNumber()
+          userName: accounts[0]
         })
 
-        // return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
-      }).then((result) => {
         return CloneInstance.getTitle.call()
       }).then((result) => {
         this.setState({
@@ -85,6 +81,15 @@ class App extends Component {
         this.setState({
           inMaintenanceMode: result
         });
+      }).then((result) => {
+        this.state.web3.eth.getBalance(accounts[0], (error, success) => {
+          this.setState({
+            balance: this.state.web3.fromWei(success, "ether").toNumber()
+          })
+          return CloneInstance.getTitle.call()
+        });
+        // return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
+        console.log('foo', result);
       });
     });
   }
