@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import CloneContract from '../build/contracts/Clone.json'
 import getWeb3 from './utils/getWeb3'
+import { connect } from 'mqtt';
 const contract = require('truffle-contract')
 const Clone = contract(CloneContract)
 let CloneInstance;
@@ -93,6 +94,24 @@ class App extends Component {
   }
 
   toggleMaintenanceMode() {
+    const client = connect(process.env.MQTT_URL);
+
+    client.on('connect', function() { // When connected
+
+      // subscribe to a topic
+      client.subscribe('hello/world', function() {
+        // when a message arrives, do something with it
+        client.on('message', function(topic, message, packet) {
+          console.log("Received '" + message + "' on '" + topic + "'");
+        });
+      });
+
+      // publish a message to a topic
+      client.publish('hello/world', 'my message', function() {
+        console.log("Message is published");
+        client.end(); // Close the connection when published
+      });
+    });
     Clone.deployed().then((instance) => {
       this.setState({
         maintenanceBtnDisabled: true,
