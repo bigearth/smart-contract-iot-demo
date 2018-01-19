@@ -88,21 +88,19 @@ class App extends Component {
           })
           return CloneInstance.getTitle.call()
         });
-        // return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
-        console.log('foo', result);
       });
     });
   }
 
   toggleMaintenanceMode() {
-    this.state.web3.eth.getAccounts((error, accounts) => {
+    this.state.web3.eth.getCoinbase((error, account) => {
       Clone.deployed().then((instance) => {
         this.setState({
           maintenanceBtnDisabled: true,
           isLoading: true
         });
 
-        return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: accounts[0]});
+        return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: account});
       }).then((result) => {
         this.setState({
           inMaintenanceMode: !this.state.inMaintenanceMode,
@@ -113,7 +111,7 @@ class App extends Component {
         return CloneInstance.getNeedsMaintenance.call()
       }).then((result) => {
         if(result === true) {
-           CloneInstance.setNeedsMaintenance(false, {from: accounts[0]});
+           CloneInstance.setNeedsMaintenance(false, {from: account});
         }
       });
     });
