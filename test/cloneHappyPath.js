@@ -11,6 +11,17 @@ contract('Clone', function(accounts) {
     });
   });
 
+  it("...should set to Generation 2", function() {
+    return Clone.deployed().then(function(instance) {
+      cloneInstance = instance;
+      return cloneInstance.setGeneration(2);
+    }).then(function() {
+      return cloneInstance.getGeneration.call();
+    }).then(function(generation) {
+      assert.equal(generation, 2, "This should set to Generation 2");
+    });
+  });
+
   it("...should have a title", function() {
     return Clone.deployed().then(function(instance) {
       cloneInstance = instance;
