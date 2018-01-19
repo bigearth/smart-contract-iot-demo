@@ -103,7 +103,7 @@ contract Clone is Ownable, Destructible {
   string title;
   bool isPrinting;
   bool needsMaintenance;
-  bool isBeingRepaired;
+  bool inMaintenanceMode;
 
   // Associative arrays
   mapping(uint => StepperMotor) public stepperMotors;
@@ -122,7 +122,7 @@ contract Clone is Ownable, Destructible {
     generation = _generation;
     isPrinting = false;
     needsMaintenance = true;
-    isBeingRepaired = false;
+    inMaintenanceMode = false;
 
     // set up default hardware values
     /* setThreadedRod(); */
@@ -172,11 +172,11 @@ contract Clone is Ownable, Destructible {
     return needsMaintenance;
   }
 
-  function setIsBeingRepaired(bool _isBeingRepaired) public {
-    isBeingRepaired = _isBeingRepaired;
+  function setInMaintenanceMode(bool _inMaintenanceMode) public {
+    inMaintenanceMode = _inMaintenanceMode;
   }
 
   function getIsBeingRepaired() public view returns (bool) {
-    return isBeingRepaired;
+    return inMaintenanceMode;
   }
 }

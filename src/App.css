@@ -66,3 +66,19 @@ code {
   height: 16px;
   margin-right: 10px;
 }
+
+.primary {
+  color: blue;
+}
+
+.success  {
+  color: green;
+}
+
+.warning  {
+  color: yellow;
+}
+
+.danger {
+  color: red;
+}

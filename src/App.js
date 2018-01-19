@@ -1,6 +1,9 @@
 import React, { Component } from 'react'
 import CloneContract from '../build/contracts/Clone.json'
 import getWeb3 from './utils/getWeb3'
+const contract = require('truffle-contract')
+const Clone = contract(CloneContract)
+let CloneInstance;
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -14,7 +17,9 @@ class App extends Component {
     this.state = {
       userName: '',
       title: '',
-      web3: null
+      web3: null,
+      Clone: '',
+      inMaintenanceMode: false
     }
   }
 
@@ -44,12 +49,10 @@ class App extends Component {
      * state management library, but for convenience I've placed them here.
      */
 
-    const contract = require('truffle-contract')
-    const Clone = contract(CloneContract)
+    this.setState({
+      Clone: Clone
+    })
     Clone.setProvider(this.state.web3.currentProvider)
-
-    // Declaring this for later so we can chain functions on clone.
-    var CloneInstance
 
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
@@ -62,34 +65,59 @@ class App extends Component {
 
         return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
       }).then((result) => {
-        return CloneInstance.getTitle.call(accounts[0])
+        return CloneInstance.getTitle.call()
       }).then((result) => {
         this.setState({
           title: result
         });
-        return CloneInstance.getNeedsMaintenance.call(accounts[0])
+        return CloneInstance.getNeedsMaintenance.call()
       }).then((result) => {
         this.setState({
           needsMaintenance: result
         });
-        return CloneInstance.getIsBeingRepaired.call(accounts[0])
+        return CloneInstance.getIsBeingRepaired.call()
       }).then((result) => {
         this.setState({
-          isBeingRepaired: result
+          inMaintenanceMode: result
         });
       });
     });
   }
 
+  toggleMaintenanceMode() {
+    this.state.web3.eth.getAccounts((error, accounts) => {
+      Clone.deployed().then((instance) => {
+
+        return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: accounts[0]});
+      }).then((result) => {
+        this.setState({
+          inMaintenanceMode: !this.state.inMaintenanceMode,
+          needsMaintenance: false
+        });
+        return CloneInstance.getNeedsMaintenance.call()
+      }).then((result) => {
+        if(result === true) {
+           CloneInstance.setNeedsMaintenance(false, {from: accounts[0]});
+        }
+      });
+    });
+  }
+
   render() {
+    let maintenanceToggleBtnState;
+    let inMaintenanceMode;
+    if(this.state.inMaintenanceMode) {
+      maintenanceToggleBtnState = 'OFF';
+      inMaintenanceMode = <p className='success'>{this.state.title} is in maintenance mode</p>;
+    } else {
+      maintenanceToggleBtnState = 'ON';
+    }
+
     let needsMaintenance;
-    let isBeingRepaired;
     if(this.state.needsMaintenance) {
-      needsMaintenance = <p>needs maintenance</p>;
+      needsMaintenance = <p className='danger'>{this.state.title} needs maintenance</p>;
     }
-    if(this.state.isBeingRepaired) {
-      isBeingRepaired = <p>Is being repaired</p>;
-    }
+
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
@@ -103,8 +131,11 @@ class App extends Component {
               <p>Balance: {this.state.balance} ETH</p>
               <h2>Clone</h2>
               <p>{this.state.title}</p>
+              <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)}>
+                Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
+              </button>
               {needsMaintenance}
-              {isBeingRepaired}
+              {inMaintenanceMode}
             </div>
           </div>
         </main>

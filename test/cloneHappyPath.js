@@ -88,19 +88,19 @@ contract('Clone', function(accounts) {
     return Clone.deployed().then(function(instance) {
       cloneInstance = instance;
       return cloneInstance.getIsBeingRepaired.call();
-    }).then(function(isBeingRepaired) {
-      assert.equal(isBeingRepaired, false, "The Clone should not be being repaired.");
+    }).then(function(inMaintenanceMode) {
+      assert.equal(inMaintenanceMode, false, "The Clone should not be being repaired.");
     });
   });
 
   it("...should be being repaired", function() {
     return Clone.deployed().then(function(instance) {
       cloneInstance = instance;
-      return cloneInstance.setIsBeingRepaired(true);
+      return cloneInstance.setInMaintenanceMode(true);
     }).then(function() {
       return cloneInstance.getIsBeingRepaired.call();
-    }).then(function(isBeingRepaired) {
-      assert.equal(isBeingRepaired, true, "The Clone should be being repaired.");
+    }).then(function(inMaintenanceMode) {
+      assert.equal(inMaintenanceMode, true, "The Clone should be being repaired.");
     });
   });
 });
