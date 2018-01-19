@@ -87,7 +87,7 @@ contract('Clone', function(accounts) {
   it("...should not be being repaired", function() {
     return Clone.deployed().then(function(instance) {
       cloneInstance = instance;
-      return cloneInstance.getIsBeingRepaired.call();
+      return cloneInstance.getInMaintenanceMode.call();
     }).then(function(inMaintenanceMode) {
       assert.equal(inMaintenanceMode, false, "The Clone should not be being repaired.");
     });
@@ -98,7 +98,7 @@ contract('Clone', function(accounts) {
       cloneInstance = instance;
       return cloneInstance.setInMaintenanceMode(true);
     }).then(function() {
-      return cloneInstance.getIsBeingRepaired.call();
+      return cloneInstance.getInMaintenanceMode.call();
     }).then(function(inMaintenanceMode) {
       assert.equal(inMaintenanceMode, true, "The Clone should be being repaired.");
     });

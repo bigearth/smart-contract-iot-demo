@@ -105,6 +105,27 @@ contract Clone is Ownable, Destructible {
   bool needsMaintenance;
   bool inMaintenanceMode;
 
+  // Events
+  event titleEvent (
+    string _title
+  );
+
+  event generationEvent (
+    uint _generation
+  );
+
+  event printEvent (
+    bool _isPrinting
+  );
+
+  event needsMaintenanceEvent (
+    bool _needsMaintenance
+  );
+
+  event inMaintenanceModeEvent (
+    bool _inMaintenanceMode
+  );
+
   // Associative arrays
   mapping(uint => StepperMotor) public stepperMotors;
   mapping(uint => ThreadedRod) public threadedRods;
@@ -118,11 +139,15 @@ contract Clone is Ownable, Destructible {
   mapping(uint => Endstop) public endstops;
 
   // constructor
-  function Clone(uint _generation) public {
+  function Clone(uint _generation, string _title) public {
     generation = _generation;
     isPrinting = false;
     needsMaintenance = true;
     inMaintenanceMode = false;
+    title = _title;
+
+    generationEvent(generation);
+    titleEvent(title);
 
     // set up default hardware values
     /* setThreadedRod(); */
@@ -132,51 +157,59 @@ contract Clone is Ownable, Destructible {
     title = _title;
   }
  */
-  function setTitle(string _title) public {
-    title = _title;
-  }
 
   function getTitle() public view returns (string) {
     return title;
   }
 
-  function setGeneration(uint _generation) public {
-    generation = _generation;
+  function setTitle(string _title) public {
+    title = _title;
+    titleEvent(title);
   }
 
   function getGeneration() public view returns (uint) {
     return generation;
   }
 
-  function setisPrinting(bool _isPrinting) public {
-    isPrinting = _isPrinting;
+  function setGeneration(uint _generation) public {
+    generation = _generation;
+    generationEvent(generation);
   }
 
   function getIsPrinting() public view returns (bool) {
     return isPrinting;
   }
 
+  function setisPrinting(bool _isPrinting) public {
+    isPrinting = _isPrinting;
+    printEvent(isPrinting);
+  }
+
   function startPrinting() public {
     isPrinting = true;
+    printEvent(isPrinting);
   }
 
   function stopPrinting() public {
     isPrinting = false;
-  }
-
-  function setNeedsMaintenance(bool _needsMaintenance) public {
-    needsMaintenance = _needsMaintenance;
+    printEvent(isPrinting);
   }
 
   function getNeedsMaintenance() public view returns (bool) {
     return needsMaintenance;
   }
 
-  function setInMaintenanceMode(bool _inMaintenanceMode) public {
-    inMaintenanceMode = _inMaintenanceMode;
+  function setNeedsMaintenance(bool _needsMaintenance) public {
+    needsMaintenance = _needsMaintenance;
+    needsMaintenanceEvent(needsMaintenance);
   }
 
-  function getIsBeingRepaired() public view returns (bool) {
+  function getInMaintenanceMode() public view returns (bool) {
     return inMaintenanceMode;
+  }
+
+  function setInMaintenanceMode(bool _inMaintenanceMode) public {
+    inMaintenanceMode = _inMaintenanceMode;
+    inMaintenanceModeEvent(inMaintenanceMode);
   }
 }

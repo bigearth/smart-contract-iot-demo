@@ -19,7 +19,9 @@ class App extends Component {
       title: '',
       web3: null,
       Clone: '',
-      inMaintenanceMode: false
+      inMaintenanceMode: false,
+      maintenanceBtnDisabled: false,
+      isLoading: false
     }
   }
 
@@ -54,6 +56,9 @@ class App extends Component {
     })
     Clone.setProvider(this.state.web3.currentProvider)
 
+    // Listen for events
+    this.listenToEvents();
+
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
       Clone.deployed().then((instance) => {
@@ -63,7 +68,7 @@ class App extends Component {
           balance: this.state.web3.fromWei(this.state.web3.eth.getBalance(accounts[0]), "ether").toNumber()
         })
 
-        return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
+        // return CloneInstance.setTitle('Clone EARTH', {from: accounts[0]})
       }).then((result) => {
         return CloneInstance.getTitle.call()
       }).then((result) => {
@@ -75,7 +80,7 @@ class App extends Component {
         this.setState({
           needsMaintenance: result
         });
-        return CloneInstance.getIsBeingRepaired.call()
+        return CloneInstance.getInMaintenanceMode.call()
       }).then((result) => {
         this.setState({
           inMaintenanceMode: result
@@ -87,18 +92,69 @@ class App extends Component {
   toggleMaintenanceMode() {
     this.state.web3.eth.getAccounts((error, accounts) => {
       Clone.deployed().then((instance) => {
+        this.setState({
+          maintenanceBtnDisabled: true,
+          isLoading: true
+        });
 
         return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: accounts[0]});
       }).then((result) => {
         this.setState({
           inMaintenanceMode: !this.state.inMaintenanceMode,
-          needsMaintenance: false
+          needsMaintenance: false,
+          maintenanceBtnDisabled: false,
+          isLoading: false
         });
         return CloneInstance.getNeedsMaintenance.call()
       }).then((result) => {
         if(result === true) {
            CloneInstance.setNeedsMaintenance(false, {from: accounts[0]});
         }
+      });
+    });
+  }
+
+  // Listen for events raised from the contract
+  listenToEvents() {
+    Clone.deployed().then((instance) => {
+      instance.titleEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        console.log('event', event);
+        // App.reloadArticles();
+      });
+
+      instance.generationEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        console.log('event', event);
+        // App.reloadArticles();
+      });
+
+      instance.printEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        console.log('event', event);
+        // App.reloadArticles();
+      });
+
+      instance.needsMaintenanceEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        console.log('event', event);
+        // App.reloadArticles();
+      });
+
+      instance.inMaintenanceModeEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        console.log('event', event);
+        // App.reloadArticles();
       });
     });
   }
@@ -118,6 +174,11 @@ class App extends Component {
       needsMaintenance = <p className='danger'>{this.state.title} needs maintenance</p>;
     }
 
+    let loader;
+    if(this.state.isLoading) {
+      loader = <div className="loader"></div>;
+    }
+
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
@@ -131,11 +192,12 @@ class App extends Component {
               <p>Balance: {this.state.balance} ETH</p>
               <h2>Clone</h2>
               <p>{this.state.title}</p>
-              <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)}>
+              <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)} disabled={this.state.maintenanceBtnDisabled}>
                 Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
               </button>
               {needsMaintenance}
               {inMaintenanceMode}
+              {loader}
             </div>
           </div>
         </main>
