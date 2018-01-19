@@ -13,7 +13,7 @@ class App extends Component {
     super(props)
 
     this.state = {
-      userName: '',
+      userName: 0x0,
       title: '',
       web3: null,
       Clone: '',
@@ -58,12 +58,12 @@ class App extends Component {
     // Listen for events
     this.listenToEvents();
 
-    // Get accounts.
-    this.state.web3.eth.getAccounts((error, accounts) => {
+    // Get account.
+    this.state.web3.eth.getCoinbase((error, account) => {
       Clone.deployed().then((instance) => {
         CloneInstance = instance
         this.setState({
-          userName: accounts[0]
+          userName: account
         })
 
         return CloneInstance.getTitle.call()
@@ -82,7 +82,7 @@ class App extends Component {
           inMaintenanceMode: result
         });
       }).then((result) => {
-        this.state.web3.eth.getBalance(accounts[0], (error, success) => {
+        this.state.web3.eth.getBalance(account, (error, success) => {
           this.setState({
             balance: this.state.web3.fromWei(success, "ether").toNumber()
           })
@@ -93,27 +93,26 @@ class App extends Component {
   }
 
   toggleMaintenanceMode() {
-    this.state.web3.eth.getCoinbase((error, account) => {
-      Clone.deployed().then((instance) => {
-        this.setState({
-          maintenanceBtnDisabled: true,
-          isLoading: true
-        });
-
-        return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: account});
-      }).then((result) => {
-        this.setState({
-          inMaintenanceMode: !this.state.inMaintenanceMode,
-          needsMaintenance: false,
-          maintenanceBtnDisabled: false,
-          isLoading: false
-        });
-        return CloneInstance.getNeedsMaintenance.call()
-      }).then((result) => {
-        if(result === true) {
-           CloneInstance.setNeedsMaintenance(false, {from: account});
-        }
+    Clone.deployed().then((instance) => {
+      this.setState({
+        maintenanceBtnDisabled: true,
+        isLoading: true
       });
+
+      console.log(this.state.userName);
+      return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: this.state.userName});
+    }).then((result) => {
+      this.setState({
+        inMaintenanceMode: !this.state.inMaintenanceMode,
+        needsMaintenance: false,
+        maintenanceBtnDisabled: false,
+        isLoading: false
+      });
+      return CloneInstance.getNeedsMaintenance.call()
+    }).then((result) => {
+      if(result === true) {
+         CloneInstance.setNeedsMaintenance(false, {from: this.state.userName});
+      }
     });
   }
 
