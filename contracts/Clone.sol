@@ -219,7 +219,7 @@ contract Clone is Ownable, Destructible {
       }
     }
 
-    // copy the articleIds array into the smaller forSale array
+    // copy the robotIds array into the smaller forSale array
     uint[] memory forSale = new uint[](numberOfRobotsForSale);
     for (uint j = 0; j < numberOfRobotsForSale; j++) {
       forSale[j] = robotIds[j];
@@ -274,4 +274,35 @@ contract Clone is Ownable, Destructible {
 
     inMaintenanceModeEvent(_id, robot.maintenance);
   }
+
+  // buy an robot
+  function buyRobot(uint _id) payable public {
+    // we check whether there is at least one robot
+    require(robotCounter > 0);
+
+    // we check whether the robot exists
+    require(_id > 0 && _id <= robotCounter);
+
+    // we retrieve the robot
+    Robot storage robot = robots[_id];
+
+    // we check whether the robot has not already been sold
+    require(robot.buyer == 0x0);
+
+    // we don't allow the seller to buy his/her own robot
+    require(robot.seller != msg.sender);
+
+    // we check whether the value sent corresponds to the robot price
+    /* require(robot.price == msg.value); */
+
+    // keep buyer's information
+    robot.buyer = msg.sender;
+
+    // the buyer can buy the robot
+    robot.seller.transfer(msg.value);
+
+    // trigger the event
+    buyRobotEvent(_id, robot.seller, robot.buyer, robot.name, robot.price);
+  }
+
 }

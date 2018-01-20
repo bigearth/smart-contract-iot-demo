@@ -152,7 +152,6 @@ class App extends Component {
       for (let i = 0; i < robotIds.length; i++) {
         let robotId = robotIds[i];
         cloneInstance.robots(robotId).then((robot) => {
-          // console.log(robot);
           bots.push({
             id: robot[0],
             seller: robot[1],
@@ -166,21 +165,18 @@ class App extends Component {
           });
         });
       }
-      // bots.push({yay: 'huh'});
     //   // App.loading = false;
     }).catch(function(err) {
     //   App.loading = false;
     });
   }
 
-  toggleMaintenanceMode(id, inMaintenanceMode) {
-    // console.log(id, inMaintenanceMode);
+  toggleMaintenanceMode(id, name, inMaintenanceMode) {
 
     Clone.deployed().then((instance) => {
       this.setState({
-      //   maintenanceBtnDisabled: true,
         isLoading: true,
-      //   mqttOutput: ''
+        mqttOutput: ''
       });
 
       if(inMaintenanceMode == false || inMaintenanceMode == 'false') {
@@ -193,29 +189,26 @@ class App extends Component {
     }).then((result) => {
       this.reloadRobots();
       this.setState({
-        // inMaintenanceMode: !this.state.inMaintenanceMode,
-        // needsMaintenance: false,
-        // maintenanceBtnDisabled: false,
         isLoading: false
       });
 
-      // const client = connect(process.env.MQTT_URL);
+      const client = connect(process.env.MQTT_URL);
       //
-      // client.on('connect', () => {
-      //   client.subscribe('clone/maintenance');
-      //   let msg = this.state.inMaintenanceMode ? 'Robot: ' + this.state.title + ' ENTERING maintenance mode' : 'Robot: ' + this.state.title + ' EXITING from maintenance mode';
-      //   client.publish('clone/maintenance', msg);
-      //   this.setState({
-      //     mqttOutput: 'Broker Publishing: ' + msg
-      //   });
-      // })
-      //
-      // client.on('message', (topic, message) => {
-      //   this.setState({
-      //     mqttOutput: 'Subscriber Receiving: ' + message
-      //   });
-      //   client.end()
-      // })
+      client.on('connect', () => {
+        client.subscribe('clone/maintenance/' + id);
+        let msg = this.state.inMaintenanceMode ? 'Robot: ' + name + ' ENTERING maintenance mode' : 'Robot: ' + name + ' EXITING from maintenance mode';
+        client.publish('clone/maintenance/' + id, msg);
+        this.setState({
+          mqttOutput: 'Broker Publishing: ' + msg
+        });
+      })
+
+      client.on('message', (topic, message) => {
+        this.setState({
+          mqttOutput: 'Subscriber Receiving: ' + message
+        });
+        client.end()
+      })
 
       return CloneInstance.getNeedsMaintenance.call()
     }).then((result) => {
@@ -226,13 +219,15 @@ class App extends Component {
   }
 
   createRobot() {
+    this.setState({
+      isLoading: true
+    });
     if ((this.state.robotName.trim() === '') || (this.state.robotPrive === 0)) {
       // nothing to create
       return false;
     }
 
     Clone.deployed().then((instance) => {
-      console.log(this.state.userName);
       return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
         from: this.state.userName,
         gas: 500000
@@ -240,7 +235,8 @@ class App extends Component {
     }).then((result) => {
       this.setState({
         robotName: '',
-        robotPrice: ''
+        robotPrice: '',
+        isLoading: false
       })
       this.reloadRobots();
     }).catch((err) => {
@@ -249,14 +245,16 @@ class App extends Component {
   }
 
   buyRobot(robotId, price) {
+    console.log(price.toNumber());
 
     Clone.deployed().then((instance) => {
-      return instance.buyArticle(robotId, {
-        from: App.account,
+      return instance.buyRobot(robotId, {
+        from: this.state.userName,
         value: this.state.web3.toWei(price, "ether"),
         gas: 500000
       });
     }).then((result) => {
+      console.log(result);
 
     }).catch((err) => {
       console.error(err);
@@ -305,7 +303,7 @@ class App extends Component {
         </li>;
         } else {
           actionBtn = <li>
-            <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.maintenance)} disabled={this.maintenance}>
+            <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.name, item.maintenance)} disabled={this.maintenance}>
               Turn Maintenance Mode {item.maintenance === 'false' ? 'ON' : 'OFF'}
             </button>
           </li>;
@@ -322,11 +320,6 @@ class App extends Component {
         robotRows.push(robotRow);
       });
     }
-              // {inMaintenanceMode}
-              // <p>IoT Console:</p>
-              // <p id='mqttConsole'>
-              //   {this.state.mqttOutput}
-              // </p>
 
     return (
       <div className="App">
@@ -336,7 +329,7 @@ class App extends Component {
 
         <main className="container">
           <div className="pure-g">
-            <div className="pure-u-1-1">
+            <div className="pure-u-1-2">
               <h1>Account: {this.state.userName}</h1>
               <p>Balance: {this.state.balance} ETH</p>
               <h2>Create New Robot</h2>
@@ -345,6 +338,12 @@ class App extends Component {
               <button onClick={this.createRobot.bind(this)}>Create</button>
               <h2>Robots</h2>
               {robotRows}
+            </div>
+            <div className="pure-u-1-2">
+              <p>IoT Console:</p>
+              <p id='mqttConsole'>
+                {this.state.mqttOutput}
+              </p>
               {loader}
             </div>
           </div>
