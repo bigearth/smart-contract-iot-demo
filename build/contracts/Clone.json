@@ -792,11 +792,60 @@
           ],
           "name": "buyRobotEvent",
           "type": "event"
+        },
+        "0x98dbd44e9139200df5a2001d4947c3f1a1d2ec30787133c580ba8c00e971000a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "_id",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "_inMaintenanceMode",
+              "type": "bool"
+            }
+          ],
+          "name": "inMaintenanceModeEvent",
+          "type": "event"
+        },
+        "0x151ebd2eb8cca17afeafe04a698fa64e98cf973b30caf1e0294c6d0370997f5c": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_id",
+              "type": "uint256"
+            },
+            {
+              "indexed": true,
+              "name": "_seller",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_name",
+              "type": "string"
+            },
+            {
+              "indexed": false,
+              "name": "_price",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "_maintenance",
+              "type": "bool"
+            }
+          ],
+          "name": "createRobotEvent",
+          "type": "event"
         }
       },
       "links": {},
-      "address": "0x48f6b52a05e16af0ff85de28a873e6bf956491b2",
-      "updated_at": 1516472222496
+      "address": "0xf2996a70fcfd60a959df148cf4a653a9ff73049b",
+      "updated_at": 1516481985281
     },
     "5777": {
       "events": {
@@ -982,10 +1031,10 @@
         }
       },
       "links": {},
-      "address": "0xd98c174a10e1c0de90edaba9b13a605fd76711e3",
-      "updated_at": 1516477944407
+      "address": "0x567bed310dc3185606a2c4f7d82b59da039fd01c",
+      "updated_at": 1516481831615
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1516477944407
+  "updated_at": 1516481985281
 }

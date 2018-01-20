@@ -69,16 +69,16 @@
     "4224": {
       "events": {},
       "links": {},
-      "address": "0x0e0604d2c29c9f412ef6d1dd6d49af8201d41a7c",
-      "updated_at": 1516472222509
+      "address": "0xd56931c7ca704b7d4b22131baf96743152406966",
+      "updated_at": 1516481985288
     },
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xf6d944df9c95447e0163e687e037485e0ce5268e",
-      "updated_at": 1516477944407
+      "address": "0x5a1b87ff6090f099acd887df21964ab717deec27",
+      "updated_at": 1516481831615
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1516477944407
+  "updated_at": 1516481985288
 }

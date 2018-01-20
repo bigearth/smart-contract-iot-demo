@@ -232,6 +232,7 @@ class App extends Component {
     }
 
     Clone.deployed().then((instance) => {
+      console.log(this.state.userName);
       return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
         from: this.state.userName,
         gas: 500000
@@ -242,6 +243,21 @@ class App extends Component {
         robotPrice: ''
       })
       this.reloadRobots();
+    }).catch((err) => {
+      console.error(err);
+    });
+  }
+
+  buyRobot(robotId, price) {
+
+    Clone.deployed().then((instance) => {
+      return instance.buyArticle(robotId, {
+        from: App.account,
+        value: this.state.web3.toWei(price, "ether"),
+        gas: 500000
+      });
+    }).then((result) => {
+
     }).catch((err) => {
       console.error(err);
     });
@@ -280,15 +296,27 @@ class App extends Component {
     if(this.state.robots.length) {
       robotRows = [];
       this.state.robots.forEach((item, index) => {
+        let actionBtn;
+        if(this.state.userName !== item.seller) {
+          actionBtn = <li>
+            <button onClick={this.buyRobot.bind(this, item.id.toNumber(), item.price)}>
+              Buy
+            </button>
+        </li>;
+        } else {
+          actionBtn = <li>
+            <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.maintenance)} disabled={this.maintenance}>
+              Turn Maintenance Mode {item.maintenance === 'false' ? 'ON' : 'OFF'}
+            </button>
+          </li>;
+        }
+
         let robotRow = <section>
           <ul>
             <li>Robot: <strong>{item.name}</strong></li>
             <li>Price: <strong>{item.price.toNumber()} ETH</strong></li>
-            <li>
-              <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.maintenance)} disabled={this.maintenance}>
-                Turn Maintenance Mode {item.maintenance === 'false' ? 'ON' : 'OFF'}
-              </button>
-            </li>
+            <li>Seller: <strong>{this.state.userName === item.seller ? 'You' : item.seller}</strong></li>
+            {actionBtn}
           </ul>
         </section>;
         robotRows.push(robotRow);
