@@ -21,7 +21,8 @@ class App extends Component {
       inMaintenanceMode: false,
       maintenanceBtnDisabled: false,
       isLoading: false,
-      balance: 0
+      balance: 0,
+      mqttOutput: ''
     }
   }
 
@@ -94,31 +95,14 @@ class App extends Component {
   }
 
   toggleMaintenanceMode() {
-    const client = connect(process.env.MQTT_URL);
 
-    client.on('connect', function() { // When connected
-
-      // subscribe to a topic
-      client.subscribe('hello/world', function() {
-        // when a message arrives, do something with it
-        client.on('message', function(topic, message, packet) {
-          console.log("Received '" + message + "' on '" + topic + "'");
-        });
-      });
-
-      // publish a message to a topic
-      client.publish('hello/world', 'my message', function() {
-        console.log("Message is published");
-        client.end(); // Close the connection when published
-      });
-    });
     Clone.deployed().then((instance) => {
       this.setState({
         maintenanceBtnDisabled: true,
-        isLoading: true
+        isLoading: true,
+        mqttOutput: ''
       });
 
-      console.log(this.state.userName);
       return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: this.state.userName});
     }).then((result) => {
       this.setState({
@@ -127,6 +111,25 @@ class App extends Component {
         maintenanceBtnDisabled: false,
         isLoading: false
       });
+
+      const client = connect(process.env.MQTT_URL);
+
+      client.on('connect', () => {
+        client.subscribe('clone/maintenance');
+        let msg = this.state.inMaintenanceMode ? 'Robot: ' + this.state.title + ' ENTERING maintenance mode' : 'Robot: ' + this.state.title + ' EXITING from maintenance mode';
+        client.publish('clone/maintenance', msg);
+        this.setState({
+          mqttOutput: 'Broker Publishing: ' + msg
+        });
+      })
+
+      client.on('message', (topic, message) => {
+        this.setState({
+          mqttOutput: 'Subscriber Receiving: ' + message
+        });
+        client.end()
+      })
+
       return CloneInstance.getNeedsMaintenance.call()
     }).then((result) => {
       if(result === true) {
@@ -142,7 +145,7 @@ class App extends Component {
         fromBlock: 0,
         toBlock: 'latest'
       }).watch((error, event) => {
-        console.log('event', event);
+        // console.log('event', event);
         // App.reloadArticles();
       });
 
@@ -150,7 +153,7 @@ class App extends Component {
         fromBlock: 0,
         toBlock: 'latest'
       }).watch((error, event) => {
-        console.log('event', event);
+        // console.log('event', event);
         // App.reloadArticles();
       });
 
@@ -158,7 +161,7 @@ class App extends Component {
         fromBlock: 0,
         toBlock: 'latest'
       }).watch((error, event) => {
-        console.log('event', event);
+        // console.log('event', event);
         // App.reloadArticles();
       });
 
@@ -166,7 +169,7 @@ class App extends Component {
         fromBlock: 0,
         toBlock: 'latest'
       }).watch((error, event) => {
-        console.log('event', event);
+        // console.log('event', event);
         // App.reloadArticles();
       });
 
@@ -174,7 +177,7 @@ class App extends Component {
         fromBlock: 0,
         toBlock: 'latest'
       }).watch((error, event) => {
-        console.log('event', event);
+        // console.log('event', event);
         // App.reloadArticles();
       });
     });
@@ -203,7 +206,7 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-          <a href="#" className="pure-menu-heading pure-menu-link">my.clone.earth</a>
+          <a href="#" className="pure-menu-heading pure-menu-link">Smart Contract & IoT demo</a>
         </nav>
 
         <main className="container">
@@ -211,13 +214,17 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>Account: {this.state.userName}</h1>
               <p>Balance: {this.state.balance} ETH</p>
-              <h2>Clone</h2>
-              <p>{this.state.title}</p>
+              <h2>Robot</h2>
+              <p>Name: {this.state.title}</p>
               <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)} disabled={this.state.maintenanceBtnDisabled}>
                 Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
               </button>
               {needsMaintenance}
               {inMaintenanceMode}
+              <p>IoT Console:</p>
+              <p id='mqttConsole'>
+                {this.state.mqttOutput}
+              </p>
               {loader}
             </div>
           </div>
