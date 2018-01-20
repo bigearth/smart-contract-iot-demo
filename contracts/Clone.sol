@@ -104,12 +104,11 @@ contract Clone is Ownable, Destructible {
     address buyer;
     string name;
     uint256 price;
+    bool maintenance;
   }
-
 
   // state variables
   uint generation;
-  string title;
   bool isPrinting;
   bool needsMaintenance;
   bool inMaintenanceMode;
@@ -129,10 +128,6 @@ contract Clone is Ownable, Destructible {
   mapping(uint => Robot) public robots;
 
   // Events
-  event titleEvent (
-    string _title
-  );
-
   event generationEvent (
     uint _generation
   );
@@ -146,6 +141,7 @@ contract Clone is Ownable, Destructible {
   );
 
   event inMaintenanceModeEvent (
+    uint _id,
     bool _inMaintenanceMode
   );
 
@@ -153,9 +149,10 @@ contract Clone is Ownable, Destructible {
     uint indexed _id,
     address indexed _seller,
     string _name,
-    uint256 _price
+    uint256 _price,
+    bool _maintenance
   );
-  
+
   event buyRobotEvent (
     uint indexed _id,
     address indexed _seller,
@@ -188,11 +185,12 @@ contract Clone is Ownable, Destructible {
       msg.sender,
       0x0,
       _name,
-      _price
+      _price,
+      false
     );
 
     // trigger the event
-    createRobotEvent(robotCounter, msg.sender, _name, _price);
+    createRobotEvent(robotCounter, msg.sender, _name, _price, false);
   }
 
   // fetch the number of robots in the contract
@@ -227,20 +225,6 @@ contract Clone is Ownable, Destructible {
       forSale[j] = robotIds[j];
     }
     return (forSale);
-  }
-
-  /* function setThreadedRod(string _title) private {
-    title = _title;
-  }
- */
-
-  function getTitle() public view returns (string) {
-    return title;
-  }
-
-  function setTitle(string _title) public {
-    title = _title;
-    titleEvent(title);
   }
 
   function getGeneration() public view returns (uint) {
@@ -284,8 +268,10 @@ contract Clone is Ownable, Destructible {
     return inMaintenanceMode;
   }
 
-  function setInMaintenanceMode(bool _inMaintenanceMode) public {
-    inMaintenanceMode = _inMaintenanceMode;
-    inMaintenanceModeEvent(inMaintenanceMode);
+  function setInMaintenanceMode(uint _id, bool _inMaintenanceMode) public {
+    Robot storage robot = robots[_id];
+    robot.maintenance = _inMaintenanceMode;
+
+    inMaintenanceModeEvent(_id, robot.maintenance);
   }
 }

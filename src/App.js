@@ -15,7 +15,6 @@ class App extends Component {
 
     this.state = {
       userName: 0x0,
-      title: '',
       web3: null,
       Clone: '',
       inMaintenanceMode: false,
@@ -67,9 +66,6 @@ class App extends Component {
 
           // return CloneInstance.getTitle.call()
         // }).then((result) => {
-        //   // this.setState({
-        //   //   title: result
-        //   // });
         //   // return CloneInstance.getNeedsMaintenance.call()
         // }).then((result) => {
         //   // this.setState({
@@ -101,13 +97,6 @@ class App extends Component {
   // Listen for events raised from the contract
   listenToEvents() {
     Clone.deployed().then((instance) => {
-      instance.titleEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // App.reloadRobots();
-      });
-
       instance.generationEvent({}, {
         fromBlock: 0,
         toBlock: 'latest'
@@ -163,11 +152,13 @@ class App extends Component {
       for (let i = 0; i < robotIds.length; i++) {
         let robotId = robotIds[i];
         cloneInstance.robots(robotId).then((robot) => {
+          // console.log(robot);
           bots.push({
             id: robot[0],
             seller: robot[1],
             name: robot[3],
-            price: robot[4]
+            price: robot[4],
+            maintenance: robot[5].toString()
           })
         }).then((result) => {
           this.setState({
@@ -182,41 +173,49 @@ class App extends Component {
     });
   }
 
-  toggleMaintenanceMode() {
+  toggleMaintenanceMode(id, inMaintenanceMode) {
+    // console.log(id, inMaintenanceMode);
 
     Clone.deployed().then((instance) => {
       this.setState({
-        maintenanceBtnDisabled: true,
+      //   maintenanceBtnDisabled: true,
         isLoading: true,
-        mqttOutput: ''
+      //   mqttOutput: ''
       });
 
-      return CloneInstance.setInMaintenanceMode(!this.state.inMaintenanceMode, {from: this.state.userName});
+      if(inMaintenanceMode == false || inMaintenanceMode == 'false') {
+        inMaintenanceMode = true;
+      } else {
+        inMaintenanceMode = false;
+      }
+
+      return CloneInstance.setInMaintenanceMode(id, inMaintenanceMode, {from: this.state.userName});
     }).then((result) => {
+      this.reloadRobots();
       this.setState({
-        inMaintenanceMode: !this.state.inMaintenanceMode,
-        needsMaintenance: false,
-        maintenanceBtnDisabled: false,
+        // inMaintenanceMode: !this.state.inMaintenanceMode,
+        // needsMaintenance: false,
+        // maintenanceBtnDisabled: false,
         isLoading: false
       });
 
-      const client = connect(process.env.MQTT_URL);
-
-      client.on('connect', () => {
-        client.subscribe('clone/maintenance');
-        let msg = this.state.inMaintenanceMode ? 'Robot: ' + this.state.title + ' ENTERING maintenance mode' : 'Robot: ' + this.state.title + ' EXITING from maintenance mode';
-        client.publish('clone/maintenance', msg);
-        this.setState({
-          mqttOutput: 'Broker Publishing: ' + msg
-        });
-      })
-
-      client.on('message', (topic, message) => {
-        this.setState({
-          mqttOutput: 'Subscriber Receiving: ' + message
-        });
-        client.end()
-      })
+      // const client = connect(process.env.MQTT_URL);
+      //
+      // client.on('connect', () => {
+      //   client.subscribe('clone/maintenance');
+      //   let msg = this.state.inMaintenanceMode ? 'Robot: ' + this.state.title + ' ENTERING maintenance mode' : 'Robot: ' + this.state.title + ' EXITING from maintenance mode';
+      //   client.publish('clone/maintenance', msg);
+      //   this.setState({
+      //     mqttOutput: 'Broker Publishing: ' + msg
+      //   });
+      // })
+      //
+      // client.on('message', (topic, message) => {
+      //   this.setState({
+      //     mqttOutput: 'Subscriber Receiving: ' + message
+      //   });
+      //   client.end()
+      // })
 
       return CloneInstance.getNeedsMaintenance.call()
     }).then((result) => {
@@ -238,37 +237,14 @@ class App extends Component {
         gas: 500000
       });
     }).then((result) => {
+      this.setState({
+        robotName: '',
+        robotPrice: ''
+      })
       this.reloadRobots();
     }).catch((err) => {
       console.error(err);
     });
-  }
-
-  displayRobot(id, seller, name, price) {
-    // Retrieve the robot placeholder
-    // var robotsRow = $('#robotsRow');
-    //
-    // var etherPrice = web3.fromWei(price, "ether");
-    //
-    // // Retrieve and fill the robot template
-    // var robotTemplate = $('#robotTemplate');
-    // robotTemplate.find('.panel-title').text(name);
-    // robotTemplate.find('.robot-description').text(description);
-    // robotTemplate.find('.robot-price').text(etherPrice + " ETH");
-    // robotTemplate.find('.btn-buy').attr('data-id', id);
-    // robotTemplate.find('.btn-buy').attr('data-value', etherPrice);
-    //
-    // // seller?
-    // if (seller == App.account) {
-    //   robotTemplate.find('.robot-seller').text("You");
-    //   robotTemplate.find('.btn-buy').hide();
-    // } else {
-    //   robotTemplate.find('.robot-seller').text(seller);
-    //   robotTemplate.find('.btn-buy').show();
-    // }
-    //
-    // // add this new robot
-    // robotsRow.append(robotTemplate.html());
   }
 
   handleRobotNameChange(e) {
@@ -304,15 +280,20 @@ class App extends Component {
     if(this.state.robots.length) {
       robotRows = [];
       this.state.robots.forEach((item, index) => {
-        let robotRow = <li>Robot: {item.name} Price: {item.price.toNumber()} ETH</li>;
+        let robotRow = <section>
+          <ul>
+            <li>Robot: <strong>{item.name}</strong></li>
+            <li>Price: <strong>{item.price.toNumber()} ETH</strong></li>
+            <li>
+              <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.maintenance)} disabled={this.maintenance}>
+                Turn Maintenance Mode {item.maintenance === 'false' ? 'ON' : 'OFF'}
+              </button>
+            </li>
+          </ul>
+        </section>;
         robotRows.push(robotRow);
       });
     }
-              // <p>Name: {this.state.title}</p>
-              // <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)} disabled={this.state.maintenanceBtnDisabled}>
-              //   Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
-              // </button>
-              // {needsMaintenance}
               // {inMaintenanceMode}
               // <p>IoT Console:</p>
               // <p id='mqttConsole'>
@@ -335,9 +316,7 @@ class App extends Component {
               <p id='newPrice'>Price: <input type='number' placeholder="Robot Price" value={this.state.robotPrice} onChange={this.handleRobotPriceChange.bind(this)} /></p>
               <button onClick={this.createRobot.bind(this)}>Create</button>
               <h2>Robots</h2>
-              <ol>
-                {robotRows}
-              </ol>
+              {robotRows}
               {loader}
             </div>
           </div>
