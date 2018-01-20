@@ -22,7 +22,10 @@ class App extends Component {
       maintenanceBtnDisabled: false,
       isLoading: false,
       balance: 0,
-      mqttOutput: ''
+      mqttOutput: '',
+      robots: [],
+      robotName: '',
+      robotPrice: ''
     }
   }
 
@@ -37,20 +40,53 @@ class App extends Component {
       })
 
       // Instantiate contract once web3 provided.
-      this.instantiateContract()
+      this.displayAccountInfo();
+      this.instantiateContract();
     })
     .catch(() => {
       console.log('Error finding web3.')
     })
   }
 
+  displayAccountInfo() {
+    // Get account.
+    this.state.web3.eth.getCoinbase((err, account) => {
+      if(err === null) {
+        Clone.deployed().then((instance) => {
+          CloneInstance = instance
+          this.setState({
+            userName: account
+          })
+          this.state.web3.eth.getBalance(account, (error, success) => {
+            this.setState({
+              balance: this.state.web3.fromWei(success, "ether").toNumber()
+            })
+
+            // return CloneInstance.getTitle.call()
+          });
+
+          // return CloneInstance.getTitle.call()
+        // }).then((result) => {
+        //   // this.setState({
+        //   //   title: result
+        //   // });
+        //   // return CloneInstance.getNeedsMaintenance.call()
+        // }).then((result) => {
+        //   // this.setState({
+        //   //   needsMaintenance: result
+        //   // });
+        //   // return CloneInstance.getInMaintenanceMode.call()
+        // }).then((result) => {
+        //   // this.setState({
+        //   //   inMaintenanceMode: result
+        //   // });
+        // }).then((result) => {
+        });
+      }
+    });
+  }
+
   instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
 
     this.setState({
       Clone: Clone
@@ -60,37 +96,89 @@ class App extends Component {
     // Listen for events
     this.listenToEvents();
 
-    // Get account.
-    this.state.web3.eth.getCoinbase((error, account) => {
-      Clone.deployed().then((instance) => {
-        CloneInstance = instance
-        this.setState({
-          userName: account
-        })
-
-        return CloneInstance.getTitle.call()
-      }).then((result) => {
-        this.setState({
-          title: result
-        });
-        return CloneInstance.getNeedsMaintenance.call()
-      }).then((result) => {
-        this.setState({
-          needsMaintenance: result
-        });
-        return CloneInstance.getInMaintenanceMode.call()
-      }).then((result) => {
-        this.setState({
-          inMaintenanceMode: result
-        });
-      }).then((result) => {
-        this.state.web3.eth.getBalance(account, (error, success) => {
-          this.setState({
-            balance: this.state.web3.fromWei(success, "ether").toNumber()
-          })
-          return CloneInstance.getTitle.call()
-        });
+    return this.reloadRobots();
+  }
+  // Listen for events raised from the contract
+  listenToEvents() {
+    Clone.deployed().then((instance) => {
+      instance.titleEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // App.reloadRobots();
       });
+
+      instance.generationEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // App.reloadRobots();
+      });
+
+      instance.printEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // App.reloadRobots();
+      });
+
+      instance.needsMaintenanceEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // App.reloadRobots();
+      });
+
+      instance.inMaintenanceModeEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // App.reloadRobots();
+      });
+
+      instance.createRobotEvent({}, {
+        fromBlock: 0,
+        toBlock: 'latest'
+      }).watch((error, event) => {
+        // this.reloadRobots();
+      });
+    });
+  }
+
+  reloadRobots() {
+    // refresh account information because the balance may have changed
+    this.displayAccountInfo();
+
+    let cloneInstance;
+    //
+    Clone.deployed().then((instance) => {
+      cloneInstance = instance;
+      return cloneInstance.getRobotsForSale();
+    }).then((robotIds) => {
+      // Retrieve and clear the robot placeholder
+    //   // var robotsRow = $('#robotsRow');
+    //   // robotsRow.empty();
+    //
+      let bots = [];
+      for (let i = 0; i < robotIds.length; i++) {
+        let robotId = robotIds[i];
+        cloneInstance.robots(robotId).then((robot) => {
+          bots.push({
+            id: robot[0],
+            seller: robot[1],
+            name: robot[3],
+            price: robot[4]
+          })
+        }).then((result) => {
+          this.setState({
+            robots: bots
+          });
+        });
+      }
+      // bots.push({yay: 'huh'});
+    //   // App.loading = false;
+    }).catch(function(err) {
+    //   App.loading = false;
     });
   }
 
@@ -138,52 +226,61 @@ class App extends Component {
     });
   }
 
-  // Listen for events raised from the contract
-  listenToEvents() {
+  createRobot() {
+    if ((this.state.robotName.trim() === '') || (this.state.robotPrive === 0)) {
+      // nothing to create
+      return false;
+    }
+
     Clone.deployed().then((instance) => {
-      instance.titleEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // console.log('event', event);
-        // App.reloadArticles();
+      return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
+        from: this.state.userName,
+        gas: 500000
       });
-
-      instance.generationEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // console.log('event', event);
-        // App.reloadArticles();
-      });
-
-      instance.printEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // console.log('event', event);
-        // App.reloadArticles();
-      });
-
-      instance.needsMaintenanceEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // console.log('event', event);
-        // App.reloadArticles();
-      });
-
-      instance.inMaintenanceModeEvent({}, {
-        fromBlock: 0,
-        toBlock: 'latest'
-      }).watch((error, event) => {
-        // console.log('event', event);
-        // App.reloadArticles();
-      });
+    }).then((result) => {
+      this.reloadRobots();
+    }).catch((err) => {
+      console.error(err);
     });
   }
 
+  displayRobot(id, seller, name, price) {
+    // Retrieve the robot placeholder
+    // var robotsRow = $('#robotsRow');
+    //
+    // var etherPrice = web3.fromWei(price, "ether");
+    //
+    // // Retrieve and fill the robot template
+    // var robotTemplate = $('#robotTemplate');
+    // robotTemplate.find('.panel-title').text(name);
+    // robotTemplate.find('.robot-description').text(description);
+    // robotTemplate.find('.robot-price').text(etherPrice + " ETH");
+    // robotTemplate.find('.btn-buy').attr('data-id', id);
+    // robotTemplate.find('.btn-buy').attr('data-value', etherPrice);
+    //
+    // // seller?
+    // if (seller == App.account) {
+    //   robotTemplate.find('.robot-seller').text("You");
+    //   robotTemplate.find('.btn-buy').hide();
+    // } else {
+    //   robotTemplate.find('.robot-seller').text(seller);
+    //   robotTemplate.find('.btn-buy').show();
+    // }
+    //
+    // // add this new robot
+    // robotsRow.append(robotTemplate.html());
+  }
+
+  handleRobotNameChange(e) {
+   this.setState({robotName: e.target.value});
+  }
+
+  handleRobotPriceChange(e) {
+   this.setState({robotPrice: e.target.value});
+  }
+
   render() {
+
     let maintenanceToggleBtnState;
     let inMaintenanceMode;
     if(this.state.inMaintenanceMode) {
@@ -203,6 +300,25 @@ class App extends Component {
       loader = <div className="loader"></div>;
     }
 
+    let robotRows;
+    if(this.state.robots.length) {
+      robotRows = [];
+      this.state.robots.forEach((item, index) => {
+        let robotRow = <li>Robot: {item.name} Price: {item.price.toNumber()} ETH</li>;
+        robotRows.push(robotRow);
+      });
+    }
+              // <p>Name: {this.state.title}</p>
+              // <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)} disabled={this.state.maintenanceBtnDisabled}>
+              //   Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
+              // </button>
+              // {needsMaintenance}
+              // {inMaintenanceMode}
+              // <p>IoT Console:</p>
+              // <p id='mqttConsole'>
+              //   {this.state.mqttOutput}
+              // </p>
+
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
@@ -214,17 +330,14 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>Account: {this.state.userName}</h1>
               <p>Balance: {this.state.balance} ETH</p>
-              <h2>Robot</h2>
-              <p>Name: {this.state.title}</p>
-              <button onClick={this.toggleMaintenanceMode.bind(this, maintenanceToggleBtnState)} disabled={this.state.maintenanceBtnDisabled}>
-                Turn Maintenance Mode {this.state.inMaintenanceMode === true ? 'OFF' : 'ON'}
-              </button>
-              {needsMaintenance}
-              {inMaintenanceMode}
-              <p>IoT Console:</p>
-              <p id='mqttConsole'>
-                {this.state.mqttOutput}
-              </p>
+              <h2>Create New Robot</h2>
+              <p id='newName'>Name: <input type='text' placeholder="Robot Name" value={this.state.robotName} onChange={this.handleRobotNameChange.bind(this)} /></p>
+              <p id='newPrice'>Price: <input type='number' placeholder="Robot Price" value={this.state.robotPrice} onChange={this.handleRobotPriceChange.bind(this)} /></p>
+              <button onClick={this.createRobot.bind(this)}>Create</button>
+              <h2>Robots</h2>
+              <ol>
+                {robotRows}
+              </ol>
               {loader}
             </div>
           </div>

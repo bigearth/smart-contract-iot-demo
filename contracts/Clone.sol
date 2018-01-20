@@ -98,12 +98,35 @@ contract Clone is Ownable, Destructible {
     string position;
   }
 
+  struct Robot {
+    uint id;
+    address seller;
+    address buyer;
+    string name;
+    uint256 price;
+  }
+
+
   // state variables
   uint generation;
   string title;
   bool isPrinting;
   bool needsMaintenance;
   bool inMaintenanceMode;
+  uint robotCounter;
+
+  // Associative arrays
+  mapping(uint => StepperMotor) public stepperMotors;
+  mapping(uint => ThreadedRod) public threadedRods;
+  mapping(uint => ChromeRod) public chromeRods;
+  mapping(uint => LeadScrew) public leadScrews;
+  mapping(uint => Nut) public nuts;
+  mapping(uint => Screw) public screws;
+  mapping(uint => PrintedPart) public printedParts;
+  mapping(uint => ZipTie) public zipTies;
+  mapping(uint => Fan) public fans;
+  mapping(uint => Endstop) public endstops;
+  mapping(uint => Robot) public robots;
 
   // Events
   event titleEvent (
@@ -126,31 +149,84 @@ contract Clone is Ownable, Destructible {
     bool _inMaintenanceMode
   );
 
-  // Associative arrays
-  mapping(uint => StepperMotor) public stepperMotors;
-  mapping(uint => ThreadedRod) public threadedRods;
-  mapping(uint => ChromeRod) public chromeRods;
-  mapping(uint => LeadScrew) public leadScrews;
-  mapping(uint => Nut) public nuts;
-  mapping(uint => Screw) public screws;
-  mapping(uint => PrintedPart) public printedParts;
-  mapping(uint => ZipTie) public zipTies;
-  mapping(uint => Fan) public fans;
-  mapping(uint => Endstop) public endstops;
+  event createRobotEvent (
+    uint indexed _id,
+    address indexed _seller,
+    string _name,
+    uint256 _price
+  );
+  
+  event buyRobotEvent (
+    uint indexed _id,
+    address indexed _seller,
+    address indexed _buyer,
+    string _name,
+    uint256 _price
+  );
 
   // constructor
-  function Clone(uint _generation, string _title) public {
+  function Clone(uint _generation) public {
     generation = _generation;
     isPrinting = false;
     needsMaintenance = true;
     inMaintenanceMode = false;
-    title = _title;
 
     generationEvent(generation);
-    titleEvent(title);
 
     // set up default hardware values
     /* setThreadedRod(); */
+  }
+
+  // sell an robot
+  function createRobot(string _name, uint256 _price) public {
+    // a new robot
+    robotCounter++;
+
+    // store this robot
+    robots[robotCounter] = Robot(
+      robotCounter,
+      msg.sender,
+      0x0,
+      _name,
+      _price
+    );
+
+    // trigger the event
+    createRobotEvent(robotCounter, msg.sender, _name, _price);
+  }
+
+  // fetch the number of robots in the contract
+  function getNumberOfRobots() public constant returns (uint) {
+    return robotCounter;
+  }
+
+
+  // fetch and returns all robot IDs available for sale
+  function getRobotsForSale() public constant returns (uint[]) {
+    // we check whether there is at least one robot
+    if(robotCounter == 0) {
+      return new uint[](0);
+    }
+
+    // prepare intermediary array
+    uint[] memory robotIds = new uint[](robotCounter);
+
+    uint numberOfRobotsForSale = 0;
+    // iterate over robots
+    for (uint i = 1; i <= robotCounter; i++) {
+      // keep only the ID of robots not sold yet
+      if (robots[i].buyer == 0x0) {
+        robotIds[numberOfRobotsForSale] = robots[i].id;
+        numberOfRobotsForSale++;
+      }
+    }
+
+    // copy the articleIds array into the smaller forSale array
+    uint[] memory forSale = new uint[](numberOfRobotsForSale);
+    for (uint j = 0; j < numberOfRobotsForSale; j++) {
+      forSale[j] = robotIds[j];
+    }
+    return (forSale);
   }
 
   /* function setThreadedRod(string _title) private {
