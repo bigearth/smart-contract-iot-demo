@@ -254,7 +254,7 @@ class App extends Component {
         gas: 500000
       });
     }).then((result) => {
-      console.log(result);
+      this.reloadRobots();
 
     }).catch((err) => {
       console.error(err);
@@ -313,7 +313,7 @@ class App extends Component {
           <ul>
             <li>Robot: <strong>{item.name}</strong></li>
             <li>Price: <strong>{item.price.toNumber()} ETH</strong></li>
-            <li>Seller: <strong>{this.state.userName === item.seller ? 'You' : item.seller}</strong></li>
+            <li>Owner: <strong>{this.state.userName === item.seller ? 'You' : item.seller}</strong></li>
             {actionBtn}
           </ul>
         </section>;
