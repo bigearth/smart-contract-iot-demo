@@ -58,7 +58,7 @@ code {
   text-transform: none;
 }
 
-.navbar .navbar-right {
+.navbar .navbar-right, .right {
   float: right;
 }
 

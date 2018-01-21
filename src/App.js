@@ -1,9 +1,11 @@
-import React, { Component } from 'react'
-import CloneContract from '../build/contracts/Clone.json'
-import getWeb3 from './utils/getWeb3'
+import React, { Component } from 'react';
+import CloneContract from '../build/contracts/Clone.json';
+import getWeb3 from './utils/getWeb3';
+import Home from './components/Home';
+import Robot from './components/Robot';
 import { connect } from 'mqtt';
-const contract = require('truffle-contract')
-const Clone = contract(CloneContract)
+const contract = require('truffle-contract');
+const Clone = contract(CloneContract);
 let CloneInstance;
 
 import './css/pure-min.css'
@@ -14,7 +16,7 @@ class App extends Component {
     super(props)
 
     this.state = {
-      userName: 0x0,
+      account: 0x0,
       web3: null,
       Clone: '',
       isLoading: false,
@@ -52,7 +54,7 @@ class App extends Component {
         Clone.deployed().then((instance) => {
           CloneInstance = instance
           this.setState({
-            userName: account
+            account: account
           })
           this.state.web3.eth.getBalance(account, (error, success) => {
             this.setState({
@@ -161,7 +163,7 @@ class App extends Component {
         inMaintenanceMode = false;
       }
 
-      return CloneInstance.setInMaintenanceMode(id, inMaintenanceMode, {from: this.state.userName});
+      return CloneInstance.setInMaintenanceMode(id, inMaintenanceMode, {from: this.state.account});
     }).then((result) => {
       this.reloadRobots();
       this.setState({
@@ -188,7 +190,7 @@ class App extends Component {
       return CloneInstance.getNeedsMaintenance.call()
     }).then((result) => {
       if(result === true) {
-         CloneInstance.setNeedsMaintenance(false, {from: this.state.userName});
+         CloneInstance.setNeedsMaintenance(false, {from: this.state.account});
       }
     });
   }
@@ -204,7 +206,7 @@ class App extends Component {
 
     Clone.deployed().then((instance) => {
       return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
-        from: this.state.userName,
+        from: this.state.account,
         gas: 500000
       });
     }).then((result) => {
@@ -224,7 +226,7 @@ class App extends Component {
 
     Clone.deployed().then((instance) => {
       return instance.buyRobot(robotId, {
-        from: this.state.userName,
+        from: this.state.account,
         value: this.state.web3.toWei(price, "ether"),
         gas: 500000
       });
@@ -256,7 +258,7 @@ class App extends Component {
       robotRows = [];
       this.state.robots.forEach((item, index) => {
         let actionBtn;
-        if(this.state.userName !== item.seller) {
+        if(this.state.account !== item.seller) {
           actionBtn = <li>
             <button onClick={this.buyRobot.bind(this, item.id.toNumber(), item.price)}>
               Buy
@@ -270,14 +272,7 @@ class App extends Component {
           </li>;
         }
 
-        let robotRow = <section>
-          <ul>
-            <li>Robot: <strong>{item.name}</strong></li>
-            <li>Price: <strong>{item.price.toNumber()} ETH</strong></li>
-            <li>Owner: <strong>{this.state.userName === item.seller ? 'You' : item.seller}</strong></li>
-            {actionBtn}
-          </ul>
-        </section>;
+        let robotRow = <Robot robot={item}/>;
         robotRows.push(robotRow);
       });
     }
@@ -285,14 +280,13 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-          <a href="#" className="pure-menu-heading pure-menu-link">Smart Contract & IoT demo</a>
+          <a href="/" className="pure-menu-heading pure-menu-link">Smart Contract & IoT demo</a>
+          <a href="/accounts/:account_id" className="pure-menu-heading pure-menu-link right">Account: {this.state.account}</a>
         </nav>
-
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-2">
-              <h1>Account: {this.state.userName}</h1>
-              <p>Balance: {this.state.balance} ETH</p>
+              <Home account={this.state.account} balance={this.state.balance}/>
               <h2>Create New Robot</h2>
               <p id='newName'>Name: <input type='text' placeholder="Robot Name" value={this.state.robotName} onChange={this.handleRobotNameChange.bind(this)} /></p>
               <p id='newPrice'>Price: <input type='number' placeholder="Robot Price" value={this.state.robotPrice} onChange={this.handleRobotPriceChange.bind(this)} /></p>
