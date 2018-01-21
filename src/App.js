@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import CloneContract from '../build/contracts/Clone.json';
 import getWeb3 from './utils/getWeb3';
 import Home from './components/Home';
+import Robots from './components/Robots';
 import Robot from './components/Robot';
+import CreateRobot from './components/CreateRobot';
 import { connect } from 'mqtt';
 const contract = require('truffle-contract');
 const Clone = contract(CloneContract);
@@ -149,102 +151,6 @@ class App extends Component {
     });
   }
 
-  toggleMaintenanceMode(id, name, inMaintenanceMode) {
-
-    Clone.deployed().then((instance) => {
-      this.setState({
-        isLoading: true,
-        mqttOutput: ''
-      });
-
-      if(inMaintenanceMode === false || inMaintenanceMode === 'false') {
-        inMaintenanceMode = true;
-      } else {
-        inMaintenanceMode = false;
-      }
-
-      return CloneInstance.setInMaintenanceMode(id, inMaintenanceMode, {from: this.state.account});
-    }).then((result) => {
-      this.reloadRobots();
-      this.setState({
-        isLoading: false
-      });
-
-      const client = connect(process.env.MQTT_URL);
-      client.on('connect', () => {
-        client.subscribe('clone/maintenance/' + id);
-        let msg = this.state.inMaintenanceMode ? 'Robot: ' + name + ' ENTERING maintenance mode' : 'Robot: ' + name + ' EXITING from maintenance mode';
-        client.publish('clone/maintenance/' + id, msg);
-        this.setState({
-          mqttOutput: 'Broker Publishing: ' + msg
-        });
-      })
-
-      client.on('message', (topic, message) => {
-        this.setState({
-          mqttOutput: 'Subscriber Receiving: ' + message
-        });
-        client.end()
-      })
-
-      return CloneInstance.getNeedsMaintenance.call()
-    }).then((result) => {
-      if(result === true) {
-         CloneInstance.setNeedsMaintenance(false, {from: this.state.account});
-      }
-    });
-  }
-
-  createRobot() {
-    this.setState({
-      isLoading: true
-    });
-    if ((this.state.robotName.trim() === '') || (this.state.robotPrive === 0)) {
-      // nothing to create
-      return false;
-    }
-
-    Clone.deployed().then((instance) => {
-      return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
-        from: this.state.account,
-        gas: 500000
-      });
-    }).then((result) => {
-      this.setState({
-        robotName: '',
-        robotPrice: '',
-        isLoading: false
-      })
-      this.reloadRobots();
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
-
-  buyRobot(robotId, price) {
-    console.log(price.toNumber());
-
-    Clone.deployed().then((instance) => {
-      return instance.buyRobot(robotId, {
-        from: this.state.account,
-        value: this.state.web3.toWei(price, "ether"),
-        gas: 500000
-      });
-    }).then((result) => {
-      this.reloadRobots();
-
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
-
-  handleRobotNameChange(e) {
-   this.setState({robotName: e.target.value});
-  }
-
-  handleRobotPriceChange(e) {
-   this.setState({robotPrice: e.target.value});
-  }
 
   render() {
 
@@ -253,46 +159,18 @@ class App extends Component {
       loader = <div className="loader"></div>;
     }
 
-    let robotRows;
-    if(this.state.robots.length) {
-      robotRows = [];
-      this.state.robots.forEach((item, index) => {
-        let actionBtn;
-        if(this.state.account !== item.seller) {
-          actionBtn = <li>
-            <button onClick={this.buyRobot.bind(this, item.id.toNumber(), item.price)}>
-              Buy
-            </button>
-        </li>;
-        } else {
-          actionBtn = <li>
-            <button onClick={this.toggleMaintenanceMode.bind(this, item.id.toNumber(), item.name, item.maintenance)} disabled={this.maintenance}>
-              Turn Maintenance Mode {item.maintenance === 'false' ? 'ON' : 'OFF'}
-            </button>
-          </li>;
-        }
-
-        let robotRow = <Robot robot={item}/>;
-        robotRows.push(robotRow);
-      });
-    }
-
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
           <a href="/" className="pure-menu-heading pure-menu-link">Smart Contract & IoT demo</a>
-          <a href="/accounts/:account_id" className="pure-menu-heading pure-menu-link right">Account: {this.state.account}</a>
+          <a href={"/accounts/" + this.state.account}  className="pure-menu-heading pure-menu-link right">Account: {this.state.account}</a>
         </nav>
         <main className="container">
           <div className="pure-g">
             <div className="pure-u-1-2">
-              <Home account={this.state.account} balance={this.state.balance}/>
-              <h2>Create New Robot</h2>
-              <p id='newName'>Name: <input type='text' placeholder="Robot Name" value={this.state.robotName} onChange={this.handleRobotNameChange.bind(this)} /></p>
-              <p id='newPrice'>Price: <input type='number' placeholder="Robot Price" value={this.state.robotPrice} onChange={this.handleRobotPriceChange.bind(this)} /></p>
-              <button onClick={this.createRobot.bind(this)}>Create</button>
-              <h2>Robots</h2>
-              {robotRows}
+              <Home balance={this.state.balance} account={this.state.account}/>
+              <CreateRobot clone={this.state.Clone} account={this.state.account} reloadRobots={this.reloadRobots.bind(this)}/>
+              <Robots clone={this.state.Clone} wei3={this.state.web3} robots={this.state.robots} account={this.state.account}/>
             </div>
             <div className="pure-u-1-2">
               <p>IoT Console:</p>
