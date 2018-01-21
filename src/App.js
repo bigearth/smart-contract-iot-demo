@@ -17,8 +17,6 @@ class App extends Component {
       userName: 0x0,
       web3: null,
       Clone: '',
-      inMaintenanceMode: false,
-      maintenanceBtnDisabled: false,
       isLoading: false,
       balance: 0,
       mqttOutput: '',
@@ -60,23 +58,7 @@ class App extends Component {
             this.setState({
               balance: this.state.web3.fromWei(success, "ether").toNumber()
             })
-
-            // return CloneInstance.getTitle.call()
           });
-
-          // return CloneInstance.getTitle.call()
-        // }).then((result) => {
-        //   // return CloneInstance.getNeedsMaintenance.call()
-        // }).then((result) => {
-        //   // this.setState({
-        //   //   needsMaintenance: result
-        //   // });
-        //   // return CloneInstance.getInMaintenanceMode.call()
-        // }).then((result) => {
-        //   // this.setState({
-        //   //   inMaintenanceMode: result
-        //   // });
-        // }).then((result) => {
         });
       }
     });
@@ -144,10 +126,6 @@ class App extends Component {
       cloneInstance = instance;
       return cloneInstance.getRobotsForSale();
     }).then((robotIds) => {
-      // Retrieve and clear the robot placeholder
-    //   // var robotsRow = $('#robotsRow');
-    //   // robotsRow.empty();
-    //
       let bots = [];
       for (let i = 0; i < robotIds.length; i++) {
         let robotId = robotIds[i];
@@ -165,9 +143,7 @@ class App extends Component {
           });
         });
       }
-    //   // App.loading = false;
     }).catch(function(err) {
-    //   App.loading = false;
     });
   }
 
@@ -179,7 +155,7 @@ class App extends Component {
         mqttOutput: ''
       });
 
-      if(inMaintenanceMode == false || inMaintenanceMode == 'false') {
+      if(inMaintenanceMode === false || inMaintenanceMode === 'false') {
         inMaintenanceMode = true;
       } else {
         inMaintenanceMode = false;
@@ -193,7 +169,6 @@ class App extends Component {
       });
 
       const client = connect(process.env.MQTT_URL);
-      //
       client.on('connect', () => {
         client.subscribe('clone/maintenance/' + id);
         let msg = this.state.inMaintenanceMode ? 'Robot: ' + name + ' ENTERING maintenance mode' : 'Robot: ' + name + ' EXITING from maintenance mode';
@@ -270,20 +245,6 @@ class App extends Component {
   }
 
   render() {
-
-    let maintenanceToggleBtnState;
-    let inMaintenanceMode;
-    if(this.state.inMaintenanceMode) {
-      maintenanceToggleBtnState = 'OFF';
-      inMaintenanceMode = <p className='success'>{this.state.title} is in maintenance mode</p>;
-    } else {
-      maintenanceToggleBtnState = 'ON';
-    }
-
-    let needsMaintenance;
-    if(this.state.needsMaintenance) {
-      needsMaintenance = <p className='danger'>{this.state.title} needs maintenance</p>;
-    }
 
     let loader;
     if(this.state.isLoading) {
