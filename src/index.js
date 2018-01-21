@@ -1,9 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { BrowserRouter, Route, Link } from 'react-router-dom'
 import App from './App'
 import Account from './components/Account'
-
 
     // <div>
     //   <nav className="navbar pure-menu pure-menu-horizontal">
@@ -14,9 +12,7 @@ import Account from './components/Account'
     //   <Route path="/" component={App}/>
     // </div>
 ReactDOM.render(
-  <BrowserRouter>
-    <App/>
-  </BrowserRouter>,
+  <App/>,
   document.getElementById('root')
 );
 

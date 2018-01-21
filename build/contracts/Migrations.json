@@ -81,10 +81,10 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x4125a25bd5fd21a6983f647d812537660b5e8aae",
-      "updated_at": 1516559291671
+      "address": "0xbc792881127984dea32e58b050d93e71666e4ca3",
+      "updated_at": 1516564359880
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1516559291671
+  "updated_at": 1516564359880
 }

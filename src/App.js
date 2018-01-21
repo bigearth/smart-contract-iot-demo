@@ -2,8 +2,12 @@ import React, { Component } from 'react';
 import CloneContract from '../build/contracts/Clone.json';
 import getWeb3 from './utils/getWeb3';
 import Home from './components/Home';
-import Robots from './components/Robots';
-import CreateRobot from './components/CreateRobot';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom'
+
 const contract = require('truffle-contract');
 const Clone = contract(CloneContract);
 let CloneInstance;
@@ -156,25 +160,40 @@ class App extends Component {
       loader = <div className="loader"></div>;
     }
 
+    const HomePage = (props) => {
+      return (
+        <Home
+          account={this.state.account}
+          balance={this.state.balance}
+          clone={this.state.Clone}
+          reloadRobots={this.reloadRobots.bind(this)}
+          web3={this.state.web3}
+          robots={this.state.robots}
+        />
+      );
+    };
+
     return (
-      <div className="App">
-        <nav className="navbar pure-menu pure-menu-horizontal">
-          <a href="/" className="pure-menu-heading pure-menu-link">Smart Contract & IoT demo</a>
-          <a href={"/accounts/" + this.state.account}  className="pure-menu-heading pure-menu-link right">Account: {this.state.account}</a>
-        </nav>
-        <main className="container">
-          <div className="pure-g">
-            <div className="pure-u-1-2">
-              <Home balance={this.state.balance} account={this.state.account}/>
-              <CreateRobot clone={this.state.Clone} account={this.state.account} reloadRobots={this.reloadRobots.bind(this)}/>
-              <Robots clone={this.state.Clone} wei3={this.state.web3} robots={this.state.robots} account={this.state.account} reloadRobots={this.reloadRobots.bind(this)}/>
+      <Router className="navbar pure-menu pure-menu-horizontal">
+        <div className="App">
+          <nav className="navbar pure-menu pure-menu-horizontal">
+            <Link className="pure-menu-heading pure-menu-link" to="/">Smart Contract & IoT demo</Link>
+            <Link className="pure-menu-heading pure-menu-link right" to={`/accounts/${this.state.account}`}>Account: {this.state.account}</Link>
+          </nav>
+          <main className="container">
+            <div className="pure-g">
+              <div className="pure-u-1-2">
+                <Route exact
+                  path="/"
+                  render={HomePage}/>
+              </div>
+              <div className="pure-u-1-2">
+                {loader}
+              </div>
             </div>
-            <div className="pure-u-1-2">
-              {loader}
-            </div>
-          </div>
-        </main>
-      </div>
+          </main>
+        </div>
+      </Router>
     );
   }
 }

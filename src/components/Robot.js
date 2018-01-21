@@ -26,8 +26,7 @@ class Robot extends Component {
 
   triggerIot(id) {
 
-    // const client = connect(process.env.MQTT_URL);
-    const client = connect("mqtts://jqpcdchr:scRzM1YSc4kh@m13.cloudmqtt.com:30805");
+    const client = connect(process.env.MQTT_URL);
     client.on('connect', () => {
       client.subscribe(`clone/maintenance/${id}`);
       let msg = (this.props.robot.maintenance === 'false')  ? `Robot: ${name} EXITING maintenance mode` : `Robot: ${name}  ENTERING maintenance mode`;
@@ -100,10 +99,10 @@ class Robot extends Component {
     return (
       <div className="Robot">
         <ul>
-          <li>Robot: <strong>{this.props.robot.name}</strong></li>
+          <li>Robot: <a href={`/accounts/${this.props.account}/robots/${this.props.robot.name}`}  className=""><strong>{this.props.robot.name}</strong></a></li>
           <li>Price: <strong>{this.props.robot.price.toNumber()} ETH</strong></li>
+          <li>Owner: <a href={`/accounts/${this.props.account}`}  className=""><strong>{this.props.account === this.props.robot.seller ? 'You' : this.props.robot.seller}</strong></a></li>
           {actionBtn}
-          <li>Owner: <strong>{this.props.account === this.props.robot.seller ? 'You' : this.props.robot.seller}</strong></li>
         </ul>
       </div>
     );
