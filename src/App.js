@@ -3,9 +3,7 @@ import CloneContract from '../build/contracts/Clone.json';
 import getWeb3 from './utils/getWeb3';
 import Home from './components/Home';
 import Robots from './components/Robots';
-import Robot from './components/Robot';
 import CreateRobot from './components/CreateRobot';
-import { connect } from 'mqtt';
 const contract = require('truffle-contract');
 const Clone = contract(CloneContract);
 let CloneInstance;
@@ -151,7 +149,6 @@ class App extends Component {
     });
   }
 
-
   render() {
 
     let loader;
@@ -170,13 +167,9 @@ class App extends Component {
             <div className="pure-u-1-2">
               <Home balance={this.state.balance} account={this.state.account}/>
               <CreateRobot clone={this.state.Clone} account={this.state.account} reloadRobots={this.reloadRobots.bind(this)}/>
-              <Robots clone={this.state.Clone} wei3={this.state.web3} robots={this.state.robots} account={this.state.account}/>
+              <Robots clone={this.state.Clone} wei3={this.state.web3} robots={this.state.robots} account={this.state.account} reloadRobots={this.reloadRobots.bind(this)}/>
             </div>
             <div className="pure-u-1-2">
-              <p>IoT Console:</p>
-              <p id='mqttConsole'>
-                {this.state.mqttOutput}
-              </p>
               {loader}
             </div>
           </div>

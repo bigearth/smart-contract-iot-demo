@@ -41,7 +41,7 @@ class CreateRobot extends Component {
         robotPrice: '',
         // isLoading: false
       })
-      this.props.reloadRobots(result);
+      this.props.reloadRobots();
     }).catch((err) => {
       console.error(err);
     });
