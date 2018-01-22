@@ -4,6 +4,7 @@ import getWeb3 from './utils/getWeb3';
 import Home from './components/Home';
 import Account from './components/Account';
 import Robot from './components/Robot';
+import Faq from './components/Faq';
 import {
   BrowserRouter as Router,
   Route,
@@ -14,7 +15,7 @@ const contract = require('truffle-contract');
 const Clone = contract(CloneContract);
 let CloneInstance;
 
-import './css/pure-min.css'
+import './css/gallery.css'
 import './App.css'
 
 class App extends Component {
@@ -194,28 +195,44 @@ class App extends Component {
       );
     };
 
+    const FaqPage = (props) => {
+      return (
+        <Faq
+        />
+      );
+    };
+
     return (
-      <Router className="navbar pure-menu pure-menu-horizontal">
-        <div className="App">
-          <nav className="navbar pure-menu pure-menu-horizontal">
-            <Link className="pure-menu-heading pure-menu-link" to="/">BotMaker</Link>
-            <Link className="pure-menu-heading pure-menu-link right" to={`/accounts/${this.state.account}`}>Account: {this.state.account} {this.state.balance} ETH</Link>
-          </nav>
-          <main className="container">
-            <div className="pure-g">
-              <div className="pure-u-1-1">
-                <Route exact
-                  path="/"
-                  render={HomePage} />
-                <Route
-                  path="/accounts/:account_id"
-                  render={AccountPage} />
-                <Route
-                  path="/accounts/:account_id/robots/:robot_id"
-                  render={RobotPage} />
-              </div>
+      <Router className="">
+        <div>
+          <div className="header">
+            <div className="pure-menu pure-menu-horizontal">
+                <Link className="pure-menu-heading" to="/">BotMaker</Link>
+
+                <ul className="pure-menu-list">
+                  <li className="pure-menu-item pure-menu-selected"><Link className="pure-menu-link" to="/">Home</Link></li>
+                  <li className="pure-menu-item"><Link className="pure-menu-link" to="/faq">FAQ</Link></li>
+                </ul>
+                <Link className="pure-menu-heading right" to="/">Account: {this.state.account} | Balance: {this.state.balance} ETH</Link>
             </div>
+          </div>
+          <main>
+            <Route exact
+              path="/"
+              render={HomePage} />
+            <Route
+              path="/accounts/:account_id"
+              render={AccountPage} />
+            <Route
+              path="/accounts/:account_id/robots/:robot_id"
+              render={RobotPage} />
+            <Route
+              path="/faq"
+              render={FaqPage} />
           </main>
+          <div className="footer">
+            Made w/ ❤️ on EARTH.
+          </div>
         </div>
       </Router>
     );
