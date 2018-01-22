@@ -25,13 +25,14 @@ class CreateRobot extends Component {
     // this.setState({
     //   isLoading: true
     // });
-    if ((this.state.robotName.trim() === '') || (this.state.robotPrive === 0)) {
+    if ((this.state.robotName.trim() === '') || (this.state.robotPrice === 0)) {
       // nothing to create
       return false;
     }
 
+    console.log(parseFloat(this.state.robotPrice), this.props.web3.toWei(this.state.robotPrice), this.props.web3.fromWei(this.props.web3.toWei(this.state.robotPrice), "ether"));
     this.props.clone.deployed().then((instance) => {
-      return instance.createRobot(this.state.robotName, +this.state.robotPrice, {
+      return instance.createRobot(this.state.robotName, this.props.web3.toWei(this.state.robotPrice), {
         from: this.props.account,
         gas: 500000
       });

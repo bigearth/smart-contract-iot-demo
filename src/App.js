@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import CloneContract from '../build/contracts/Clone.json';
 import getWeb3 from './utils/getWeb3';
 import Home from './components/Home';
+import Account from './components/Account';
+import Robot from './components/Robot';
 import {
   BrowserRouter as Router,
   Route,
@@ -173,22 +175,44 @@ class App extends Component {
       );
     };
 
+    const AccountPage = (props) => {
+      return (
+        <Account
+          account={this.state.account}
+          balance={this.state.balance}
+        />
+      );
+    };
+
+    const RobotPage = (props) => {
+      return (
+        <Robot
+          robot={this.state.account}
+          account={this.state.account}
+          clone={this.state.Clone}
+        />
+      );
+    };
+
     return (
       <Router className="navbar pure-menu pure-menu-horizontal">
         <div className="App">
           <nav className="navbar pure-menu pure-menu-horizontal">
-            <Link className="pure-menu-heading pure-menu-link" to="/">Smart Contract & IoT demo</Link>
-            <Link className="pure-menu-heading pure-menu-link right" to={`/accounts/${this.state.account}`}>Account: {this.state.account}</Link>
+            <Link className="pure-menu-heading pure-menu-link" to="/">BotMaker</Link>
+            <Link className="pure-menu-heading pure-menu-link right" to={`/accounts/${this.state.account}`}>Account: {this.state.account} {this.state.balance} ETH</Link>
           </nav>
           <main className="container">
             <div className="pure-g">
-              <div className="pure-u-1-2">
+              <div className="pure-u-1-1">
                 <Route exact
                   path="/"
-                  render={HomePage}/>
-              </div>
-              <div className="pure-u-1-2">
-                {loader}
+                  render={HomePage} />
+                <Route
+                  path="/accounts/:account_id"
+                  render={AccountPage} />
+                <Route
+                  path="/accounts/:account_id/robots/:robot_id"
+                  render={RobotPage} />
               </div>
             </div>
           </main>

@@ -21,9 +21,11 @@ class Home extends Component {
   render() {
     return (
       <div className="Home">
+        <h1>BotMaker</h1>
+        <p>Create and sell your own unique robots which live on the blockchain. Have them send signals to physical robots on the Internet of Things</p>
         <Account account={this.props.account} balance={this.props.balance}/>
-        <CreateRobot clone={this.props.clone} account={this.props.account} reloadRobots={this.reloadRobots.bind(this)}/>
-        <Robots clone={this.props.clone} wei3={this.props.web3} robots={this.props.robots} account={this.props.account} reloadRobots={this.reloadRobots.bind(this)}/>
+        <CreateRobot clone={this.props.clone} account={this.props.account} reloadRobots={this.reloadRobots.bind(this)} web3={this.props.web3}/>
+        <Robots clone={this.props.clone} wei3={this.props.web3} robots={this.props.robots} account={this.props.account} reloadRobots={this.reloadRobots.bind(this)} web3={this.props.web3}/>
       </div>
     );
   }

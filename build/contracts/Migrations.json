@@ -75,16 +75,16 @@
     "4224": {
       "events": {},
       "links": {},
-      "address": "0x06c3ecaea5af48464647065bf5bec77266221773",
-      "updated_at": 1516498410846
+      "address": "0x4d555153f20cd54a36409122c44935e082105749",
+      "updated_at": 1516574578749
     },
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xbc792881127984dea32e58b050d93e71666e4ca3",
-      "updated_at": 1516564359880
+      "address": "0xdb8351544936c3925b8b349f0af422055e2e19cc",
+      "updated_at": 1516582491987
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1516564359880
+  "updated_at": 1516582491987
 }

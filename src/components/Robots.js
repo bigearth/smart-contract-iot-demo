@@ -16,22 +16,6 @@ class Robots extends Component {
     this.props.reloadRobots();
   }
 
-  buyRobot(robotId, price) {
-    console.log(price.toNumber());
-
-    this.props.clone.deployed().then((instance) => {
-      return instance.buyRobot(robotId, {
-        from: this.props.account,
-        value: this.props.web3.toWei(price, "ether"),
-        gas: 500000
-      });
-    }).then((result) => {
-      // this.reloadRobots();
-
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
 
 
   render() {
@@ -39,7 +23,7 @@ class Robots extends Component {
     if(this.props.robots.length) {
       robotRows = [];
       this.props.robots.forEach((robot, index) => {
-        let robotRow = <Robot robot={robot} account={this.props.account} clone={this.props.clone} reloadRobots={this.reloadRobots.bind(this)}/>;
+        let robotRow = <Robot robot={robot} account={this.props.account} clone={this.props.clone} reloadRobots={this.reloadRobots.bind(this)}  web3={this.props.web3}/>;
         robotRows.push(robotRow);
       });
     }

@@ -80,6 +80,22 @@ class Robot extends Component {
     });
   }
 
+  buyRobot(robotId, price) {
+
+    this.props.clone.deployed().then((instance) => {
+      return instance.buyRobot(robotId, {
+        from: this.props.account,
+        value: price.toNumber(),
+        gas: 500000
+      });
+    }).then((result) => {
+      // this.reloadRobots();
+
+    }).catch((err) => {
+      console.error(err);
+    });
+  }
+
   render() {
     let actionBtn;
     if(this.props.account !== this.props.robot.seller) {
@@ -100,7 +116,7 @@ class Robot extends Component {
       <div className="Robot">
         <ul>
           <li>Robot: <a href={`/accounts/${this.props.account}/robots/${this.props.robot.name}`}  className=""><strong>{this.props.robot.name}</strong></a></li>
-          <li>Price: <strong>{this.props.robot.price.toNumber()} ETH</strong></li>
+          <li>Price: <strong>{this.props.web3.fromWei(this.props.robot.price, "ether").toNumber()} ETH</strong></li>
           <li>Owner: <a href={`/accounts/${this.props.account}`}  className=""><strong>{this.props.account === this.props.robot.seller ? 'You' : this.props.robot.seller}</strong></a></li>
           {actionBtn}
         </ul>
